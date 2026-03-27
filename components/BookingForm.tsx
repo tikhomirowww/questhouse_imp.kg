@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -35,7 +35,44 @@ interface FormData {
 
 function getTodayDate() {
   const today = new Date();
-  return today.toISOString().split("T")[0];
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getBishkekNowParts() {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bishkek",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(new Date());
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+
+  return {
+    date: `${get("year")}-${get("month")}-${get("day")}`,
+    hour: Number(get("hour")),
+    minute: Number(get("minute")),
+  };
+}
+
+function isSlotTooSoon(date: string, timeSlot: string) {
+  const now = getBishkekNowParts();
+  if (!date || date !== now.date) {
+    return false;
+  }
+
+  const [slotHour, slotMinute] = timeSlot.split(":").map(Number);
+  const slotTotalMinutes = slotHour * 60 + slotMinute;
+  const nowTotalMinutes = now.hour * 60 + now.minute;
+
+  return slotTotalMinutes - nowTotalMinutes < 120;
 }
 
 export default function BookingForm() {
@@ -65,25 +102,50 @@ export default function BookingForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [calendarHint, setCalendarHint] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const lastSlotsKeyRef = useRef<string>("");
+  const slotsAbortRef = useRef<AbortController | null>(null);
 
   // Fetch booked slots when quest and date change
   const fetchSlots = useCallback(async (quest: string, date: string) => {
     if (!quest || !date) {
+      lastSlotsKeyRef.current = "";
+      slotsAbortRef.current?.abort();
       setBookedSlots([]);
       return;
     }
+
+    const requestKey = `${quest}:${date}`;
+    if (lastSlotsKeyRef.current === requestKey) {
+      return;
+    }
+
+    lastSlotsKeyRef.current = requestKey;
+    slotsAbortRef.current?.abort();
+    const controller = new AbortController();
+    slotsAbortRef.current = controller;
+
     setLoadingSlots(true);
     try {
-      const res = await fetch(`/api/slots?quest=${quest}&date=${date}`);
+      const res = await fetch(`/api/slots?quest=${quest}&date=${date}`, {
+        signal: controller.signal,
+      });
       const data = await res.json();
       if (data.success) {
         setBookedSlots(data.bookedSlots ?? []);
+      } else {
+        setBookedSlots([]);
       }
-    } catch {
-      // silently ignore
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      setBookedSlots([]);
     } finally {
-      setLoadingSlots(false);
+      if (slotsAbortRef.current === controller) {
+        setLoadingSlots(false);
+      }
     }
   }, []);
 
@@ -92,9 +154,15 @@ export default function BookingForm() {
     // Reset time slot if the current one becomes booked
   }, [form.quest, form.date, fetchSlots]);
 
+  useEffect(() => {
+    return () => {
+      slotsAbortRef.current?.abort();
+    };
+  }, []);
+
   // Reset time slot when quest/date change
   useEffect(() => {
-    if (bookedSlots.includes(form.timeSlot)) {
+    if (bookedSlots.includes(form.timeSlot) || isSlotTooSoon(form.date, form.timeSlot)) {
       setForm((prev) => ({ ...prev, timeSlot: "" }));
     }
   }, [bookedSlots, form.timeSlot]);
@@ -132,6 +200,7 @@ export default function BookingForm() {
 
       if (data.success) {
         setSuccess(data.message ?? f.successTitle);
+        lastSlotsKeyRef.current = "";
         setForm({
           quest: "",
           date: "",
@@ -155,6 +224,9 @@ export default function BookingForm() {
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
+    if (key === "quest") {
+      setCalendarHint(null);
+    }
     setError(null);
   }
 
@@ -268,7 +340,12 @@ export default function BookingForm() {
           minDate={getTodayDate()}
           accentColor={accentColor}
           error={!!fieldErrors.date}
+          disabled={!form.quest}
+          onDisabledClick={() => setCalendarHint("Сначала выберите квест")}
         />
+        {calendarHint && !form.quest && (
+          <p className="mt-1.5 text-xs text-amber-400">{calendarHint}</p>
+        )}
         {fieldErrors.date && (
           <p className="mt-1.5 text-xs text-red-400">{fieldErrors.date}</p>
         )}
@@ -280,47 +357,68 @@ export default function BookingForm() {
           <Clock className="w-4 h-4" style={{ color: accentColor }} />
           {f.timeLabel} <span className="text-red-500">*</span>
           {loadingSlots && (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#71717a]" />
+            <span className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-[#d4d4d8]">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Загрузка
+            </span>
           )}
         </label>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {TIME_SLOTS.map((slot) => {
             const isBooked = bookedSlots.includes(slot);
             const isSelected = form.timeSlot === slot;
+            const isTooSoon = isSlotTooSoon(form.date, slot);
+            const isUnavailable = !form.date || !form.quest || loadingSlots;
+            const isDisabled = isBooked || isTooSoon || isUnavailable;
 
             return (
               <button
                 key={slot}
                 type="button"
-                disabled={isBooked || !form.date || !form.quest}
-                onClick={() => !isBooked && setField("timeSlot", slot)}
+                disabled={isDisabled}
+                onClick={() => !isDisabled && setField("timeSlot", slot)}
                 className="py-2.5 px-2 rounded-xl text-sm font-medium transition-all duration-200 relative"
                 style={{
                   background: isBooked
                     ? "rgba(255,255,255,0.03)"
+                    : isTooSoon
+                    ? "rgba(255,255,255,0.03)"
+                    : isUnavailable
+                    ? "rgba(255,255,255,0.025)"
                     : isSelected
                     ? `${accentColor}20`
                     : "rgba(255,255,255,0.05)",
                   border: `1px solid ${
                     isBooked
                       ? "rgba(255,255,255,0.05)"
+                      : isTooSoon
+                      ? "rgba(245,158,11,0.18)"
+                      : isUnavailable
+                      ? "rgba(255,255,255,0.06)"
                       : isSelected
                       ? `${accentColor}80`
                       : "rgba(255,255,255,0.1)"
                   }`,
                   color: isBooked
                     ? "#3f3f46"
+                    : isTooSoon
+                    ? "#6b5d37"
+                    : isUnavailable
+                    ? "#5b5b66"
                     : isSelected
                     ? accentColor
                     : "#a1a1aa",
-                  cursor: isBooked ? "not-allowed" : !form.date || !form.quest ? "not-allowed" : "pointer",
-                  opacity: !form.date || !form.quest ? 0.5 : 1,
+                  cursor: isDisabled ? "not-allowed" : "pointer",
+                  opacity: isUnavailable ? 0.72 : 1,
                 }}
-                title={isBooked ? f.slotTaken : undefined}
+                title={isBooked ? f.slotTaken : isTooSoon ? f.slotTooSoon : undefined}
               >
                 {slot}
                 {isBooked && (
                   <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-black" />
+                )}
+                {isTooSoon && !isBooked && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border border-black" />
                 )}
               </button>
             );
@@ -328,6 +426,10 @@ export default function BookingForm() {
         </div>
         {!form.date || !form.quest ? (
           <p className="mt-2 text-xs text-[#71717a]">{f.selectQuestFirst}</p>
+        ) : loadingSlots ? (
+          <p className="mt-2 text-xs text-[#d4d4d8]">
+            Проверяем занятые слоты. Выбор времени станет доступен после ответа сервера.
+          </p>
         ) : null}
         {fieldErrors.timeSlot && (
           <p className="mt-1.5 text-xs text-red-400">{fieldErrors.timeSlot}</p>
@@ -336,6 +438,12 @@ export default function BookingForm() {
           <div className="mt-2 flex items-center gap-1.5 text-xs text-[#71717a]">
             <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />
             {f.bookedSlots}
+          </div>
+        )}
+        {form.date && (
+          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-[#8b8b95]">
+            <span className="w-2.5 h-2.5 bg-amber-500 rounded-full" />
+            {f.slotLeadTimeHint}
           </div>
         )}
       </div>

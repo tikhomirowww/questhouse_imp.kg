@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { appendBooking, isSlotTaken } from "@/lib/excel";
+import { appendBooking, isSlotTaken } from "@/lib/google-sheets";
 import { randomUUID } from "crypto";
 
 export interface BookingRequest {
@@ -14,6 +14,53 @@ export interface BookingRequest {
 
 const VALID_QUESTS = ["gravity-falls", "frankenstein"];
 const VALID_SLOTS = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
+
+function getBishkekNowParts() {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Bishkek",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(new Date());
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+
+  return {
+    date: `${get("year")}-${get("month")}-${get("day")}`,
+    hour: Number(get("hour")),
+    minute: Number(get("minute")),
+  };
+}
+
+function isSlotTooSoon(date: string, timeSlot: string) {
+  const now = getBishkekNowParts();
+  if (date !== now.date) {
+    return false;
+  }
+
+  const [slotHour, slotMinute] = timeSlot.split(":").map(Number);
+  const slotTotalMinutes = slotHour * 60 + slotMinute;
+  const nowTotalMinutes = now.hour * 60 + now.minute;
+
+  return slotTotalMinutes - nowTotalMinutes < 120;
+}
+
+function getQuestName(quest: string) {
+  return quest === "gravity-falls" ? "Gravity Falls" : "Франкенштейн";
+}
+
+function formatBookingDate(date: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Bishkek",
+  }).format(new Date(`${date}T00:00:00+06:00`));
+}
 
 function validateDate(dateStr: string): boolean {
   const date = new Date(dateStr);
@@ -61,6 +108,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (isSlotTooSoon(date, timeSlot)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Этот слот недоступен менее чем за 2 часа до начала. Выберите более позднее время.",
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate participants
     const participantsNum = Number(participants);
     if (isNaN(participantsNum) || participantsNum < 2 || participantsNum > 10) {
@@ -80,7 +137,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check double booking
-    if (isSlotTaken(quest, date, timeSlot)) {
+    const questName = getQuestName(quest);
+    const formattedDate = formatBookingDate(date);
+
+    if (await isSlotTaken(questName, formattedDate, timeSlot)) {
       return NextResponse.json(
         {
           success: false,
@@ -97,14 +157,11 @@ export async function POST(request: NextRequest) {
       timeZone: "Asia/Bishkek",
     });
 
-    const questName = quest === "gravity-falls" ? "Gravity Falls" : "Франкенштейн";
-
-    // Save to Excel
-    appendBooking({
+    await appendBooking({
       id: bookingId,
       createdAt: now,
-      quest: questName,
-      date,
+      questName,
+      date: formattedDate,
       timeSlot,
       name: name.trim(),
       phone: phone.trim(),
@@ -115,8 +172,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      bookingId,
-      message: `Бронирование подтверждено! Ваш номер: ${bookingId}`,
+      message: "Бронирование подтверждено!",
     });
   } catch (error) {
     console.error("Booking error:", error);

@@ -1,6 +1,6 @@
 # Квест Хаус ИМП — Официальный сайт
 
-Полнофункциональный веб-сайт для квест-хауса **ИМП** в Бишкеке (Кыргызстан) с онлайн-бронированием и сохранением заявок в Excel.
+Полнофункциональный веб-сайт для квест-хауса **ИМП** в Бишкеке (Кыргызстан) с онлайн-бронированием и сохранением заявок в Google Sheets.
 
 ## Стек технологий
 
@@ -8,7 +8,7 @@
 - **TypeScript**
 - **Tailwind CSS**
 - **Framer Motion** — анимации
-- **SheetJS (xlsx)** — запись бронирований в Excel
+- **Google Sheets API** — хранение бронирований и занятых слотов
 - **Lucide React** — иконки
 
 ---
@@ -21,13 +21,31 @@
 npm install
 ```
 
-### 2. Инициализировать Excel-файл (опционально)
+### 2. Настроить Google Sheets
+
+Создайте `.env.local` на основе `.env.example`:
 
 ```bash
-npx tsx scripts/init-excel.ts
+cp .env.example .env.local
 ```
 
-Создаёт файл `data/bookings.xlsx` с заголовками. Файл также создаётся автоматически при первом бронировании.
+Заполните переменные:
+
+```env
+GOOGLE_SHEETS_SPREADSHEET_ID=
+GOOGLE_SHEETS_SHEET_NAME=Bookings
+GOOGLE_SHEETS_CLIENT_EMAIL=
+GOOGLE_SHEETS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+Что нужно сделать в Google Cloud:
+
+1. Создать Service Account.
+2. Включить Google Sheets API.
+3. Скачать JSON-ключ и перенести `client_email` и `private_key` в `.env.local`.
+4. Открыть нужную Google-таблицу и выдать доступ `Editor` на `GOOGLE_SHEETS_CLIENT_EMAIL`.
+
+Лист `Bookings` создастся автоматически, если его ещё нет.
 
 ### 3. Запустить в режиме разработки
 
@@ -75,11 +93,7 @@ questhouse-imp/
 │   ├── WhatsAppButton.tsx  # Плавающая кнопка WhatsApp
 │   └── BookingForm.tsx     # Форма бронирования
 ├── lib/
-│   └── excel.ts            # Утилиты чтения/записи Excel (SheetJS)
-├── data/
-│   └── bookings.xlsx       # Файл с бронированиями (создаётся автоматически)
-├── scripts/
-│   └── init-excel.ts       # Скрипт инициализации Excel
+│   └── google-sheets.ts    # Утилиты чтения/записи Google Sheets
 ├── tailwind.config.ts
 └── next.config.ts
 ```
@@ -93,24 +107,25 @@ questhouse-imp/
 - Реалтайм проверка занятых слотов (GET /api/slots)
 - Защита от двойного бронирования на сервере
 - Валидация всех полей с русскоязычными ошибками
-- Успешное бронирование сохраняется в `data/bookings.xlsx`
+- Успешное бронирование сохраняется в Google Sheets
 
-### Excel (data/bookings.xlsx)
+### Google Sheets
 
 Каждое бронирование содержит колонки:
 
 | Колонка | Описание |
 |---|---|
 | ID | Уникальный ID (QH-...) |
-| Дата создания | Дата/время создания заявки |
-| Квест | Gravity Falls / Франкенштейн |
-| Дата сеанса | Дата квеста |
-| Время | Временной слот |
-| Имя | Имя клиента |
-| Телефон | Номер телефона |
-| Кол-во участников | 2–10 |
-| Комментарий | Пожелания |
-| Статус | confirmed / cancelled |
+| Created At | Дата/время создания заявки |
+| Quest Slug | `gravity-falls` / `frankenstein` |
+| Quest Name | Gravity Falls / Франкенштейн |
+| Booking Date | Дата квеста |
+| Time Slot | Временной слот |
+| Customer Name | Имя клиента |
+| Phone | Номер телефона |
+| Participants | 2–10 |
+| Comment | Пожелания |
+| Status | confirmed / cancelled |
 
 ### SEO
 - Полные метаданные (title, description, keywords)
@@ -143,6 +158,8 @@ vercel
 ```
 
 > **Важно:** при деплое на Vercel `data/bookings.xlsx` не сохраняется между деплоями (serverless). Для production используйте Vercel Blob Storage или замените на БД (Supabase, PlanetScale).
+>
+> Теперь заявки хранятся в Google Sheets, поэтому локальное файловое хранилище больше не используется. Главное: корректно задать env-переменные в Vercel и выдать сервисному аккаунту доступ к таблице.
 
 ### Self-hosted (VPS)
 
@@ -151,4 +168,4 @@ npm run build
 pm2 start npm --name questhouse -- start
 ```
 
-Excel-файл сохраняется на сервере в папке `data/`.
+На сервере также нужно задать те же Google Sheets env-переменные.

@@ -34,6 +34,8 @@ interface DatePickerProps {
   minDate?: string; // "YYYY-MM-DD"
   accentColor?: string;
   error?: boolean;
+  disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
 export default function DatePicker({
@@ -42,15 +44,22 @@ export default function DatePicker({
   minDate,
   accentColor = "#7c3aed",
   error = false,
+  disabled = false,
+  onDisabledClick,
 }: DatePickerProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const minDateObject = minDate ? new Date(minDate + "T00:00:00") : today;
 
   const initialDate = value ? new Date(value + "T00:00:00") : today;
   const [viewYear, setViewYear] = useState(initialDate.getFullYear());
   const [viewMonth, setViewMonth] = useState(initialDate.getMonth());
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const isAtMinMonth =
+    viewYear < minDateObject.getFullYear() ||
+    (viewYear === minDateObject.getFullYear() &&
+      viewMonth <= minDateObject.getMonth());
 
   // Close on outside click
   useEffect(() => {
@@ -129,17 +138,36 @@ export default function DatePicker({
       {/* Input trigger */}
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => {
+          if (disabled) {
+            onDisabledClick?.();
+            return;
+          }
+          setOpen((o) => !o);
+        }}
         className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 focus:outline-none"
         style={{
-          background: "rgba(255,255,255,0.05)",
+          background: disabled ? "rgba(255,255,255,0.025)" : "rgba(255,255,255,0.05)",
           border: `1px solid ${open ? accentColor + "80" : error ? "#dc2626" : "rgba(255,255,255,0.1)"}`,
+          cursor: disabled ? "not-allowed" : "pointer",
+          opacity: disabled ? 0.72 : 1,
         }}
       >
-        <span className={value ? "text-white text-sm" : "text-[#3f3f46] text-sm"}>
+        <span
+          className={
+            value
+              ? "text-white text-sm"
+              : disabled
+              ? "text-[#5b5b66] text-sm"
+              : "text-[#3f3f46] text-sm"
+          }
+        >
           {value ? formatDisplay(value) : "дд.мм.гггг"}
         </span>
-        <Calendar className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+        <Calendar
+          className="w-4 h-4 shrink-0"
+          style={{ color: disabled ? "#5b5b66" : accentColor }}
+        />
       </button>
 
       {/* Calendar dropdown */}
@@ -165,7 +193,13 @@ export default function DatePicker({
               <button
                 type="button"
                 onClick={prevMonth}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-[#a1a1aa] hover:text-white"
+                disabled={isAtMinMonth}
+                className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                style={{
+                  color: isAtMinMonth ? "#3f3f46" : "#a1a1aa",
+                  opacity: isAtMinMonth ? 0 : 1,
+                  pointerEvents: isAtMinMonth ? "none" : "auto",
+                }}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -219,7 +253,7 @@ export default function DatePicker({
                         color: selected
                           ? "#fff"
                           : disabled
-                          ? "#333"
+                          ? "#4a4a53"
                           : isOtherMonth
                           ? "#444"
                           : todayCell
@@ -227,6 +261,7 @@ export default function DatePicker({
                           : "#d4d4d8",
                         background: selected ? accentColor : "transparent",
                         cursor: disabled ? "not-allowed" : "pointer",
+                        opacity: disabled ? 0.52 : 1,
                       }}
                       onMouseEnter={e => {
                         if (!disabled && !selected)

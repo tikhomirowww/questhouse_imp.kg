@@ -118,7 +118,7 @@ export default function ContactSection() {
             style={{ border: "1px solid rgba(255,255,255,0.1)", minHeight: 380 }}
           >
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2924.4!2d74.589!3d42.870!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z0JHQsNC50YLQuNC6INCRQNCw0LDRgtGL0YAgMzYvMSwg0JHQuNGI0LrQtdC6!5e0!3m2!1sru!2skg!4v1"
+              src="https://maps.google.com/maps?q=%D0%9A%D0%B2%D0%B5%D1%81%D1%82%20%D0%A5%D0%B0%D1%83%D1%81%20%D0%98%D0%9C%D0%9F%2C%20%D1%83%D0%BB.%20%D0%91%D0%B0%D0%B9%D1%82%D0%B8%D0%BA%20%D0%91%D0%B0%D0%B0%D1%82%D1%8B%D1%80%D0%B0%2036%2F1%2C%20%D0%91%D0%B8%D1%88%D0%BA%D0%B5%D0%BA&z=17&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0, minHeight: 380, filter: "invert(90%) hue-rotate(180deg)" }}

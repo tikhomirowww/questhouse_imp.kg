@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBookedSlots } from "@/lib/excel";
+import { getBookedSlots } from "@/lib/google-sheets";
 
 export const dynamic = "force-dynamic";
+
+function getQuestName(quest: string) {
+  return quest === "gravity-falls" ? "Gravity Falls" : "Франкенштейн";
+}
+
+function formatBookingDate(date: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Bishkek",
+  }).format(new Date(`${date}T00:00:00+06:00`));
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +29,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const bookedSlots = getBookedSlots(quest, date);
+    const bookedSlots = await getBookedSlots(
+      getQuestName(quest),
+      formatBookingDate(date)
+    );
 
     return NextResponse.json({
       success: true,
