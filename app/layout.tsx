@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://questhouse-imp.kg"),
@@ -117,7 +118,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#0a0a0a] text-white antialiased">
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

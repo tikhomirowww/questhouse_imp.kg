@@ -16,11 +16,10 @@ import {
   ChevronRight,
 } from "lucide-react";
 import DatePicker from "@/components/DatePicker";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-const QUESTS = [
-  { id: "gravity-falls", label: "🌀 Gravity Falls — Логический квест", color: "#7c3aed" },
-  { id: "frankenstein", label: "👹 Франкенштейн — Хоррор квест", color: "#dc2626" },
-];
+const QUEST_IDS = ["gravity-falls", "frankenstein"];
+const QUEST_COLORS = ["#7c3aed", "#dc2626"];
 
 const TIME_SLOTS = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
 
@@ -40,11 +39,19 @@ function getTodayDate() {
 }
 
 export default function BookingForm() {
+  const { t } = useLanguage();
+  const f = t.form;
   const searchParams = useSearchParams();
   const preSelectedQuest = searchParams.get("quest") ?? "";
 
+  const QUESTS = QUEST_IDS.map((id, i) => ({
+    id,
+    label: f.questOptions[i],
+    color: QUEST_COLORS[i],
+  }));
+
   const [form, setForm] = useState<FormData>({
-    quest: QUESTS.find((q) => q.id === preSelectedQuest)?.id ?? "",
+    quest: QUEST_IDS.includes(preSelectedQuest) ? preSelectedQuest : "",
     date: "",
     timeSlot: "",
     name: "",
@@ -94,13 +101,13 @@ export default function BookingForm() {
 
   function validateForm(): boolean {
     const errors: Partial<Record<keyof FormData, string>> = {};
-    if (!form.quest) errors.quest = "Выберите квест";
-    if (!form.date) errors.date = "Выберите дату";
-    if (!form.timeSlot) errors.timeSlot = "Выберите время";
-    if (!form.name.trim()) errors.name = "Введите ваше имя";
-    if (!form.phone.trim()) errors.phone = "Введите номер телефона";
+    if (!form.quest) errors.quest = f.errors.quest;
+    if (!form.date) errors.date = f.errors.date;
+    if (!form.timeSlot) errors.timeSlot = f.errors.time;
+    if (!form.name.trim()) errors.name = f.errors.name;
+    if (!form.phone.trim()) errors.phone = f.errors.phone;
     if (form.participants < 2 || form.participants > 10)
-      errors.participants = "От 2 до 10 участников";
+      errors.participants = f.errors.participants;
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -124,7 +131,7 @@ export default function BookingForm() {
       const data = await res.json();
 
       if (data.success) {
-        setSuccess(data.message ?? "Бронирование успешно!");
+        setSuccess(data.message ?? f.successTitle);
         setForm({
           quest: "",
           date: "",
@@ -173,11 +180,11 @@ export default function BookingForm() {
           className="text-2xl font-bold text-white mb-3"
           style={{ fontFamily: "'Cinzel', serif" }}
         >
-          Готово!
+          {f.successTitle}
         </h3>
         <p className="text-[#a1a1aa] mb-2">{success}</p>
         <p className="text-[#71717a] text-sm mb-8">
-          Мы свяжемся с вами для подтверждения. По вопросам звоните:{" "}
+          {f.successNote}{" "}
           <a href="tel:+996555118119" className="text-white hover:underline">
             +996 555 118 119
           </a>
@@ -187,7 +194,7 @@ export default function BookingForm() {
           className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:scale-105"
           style={{ background: "linear-gradient(135deg, #dc2626, #7c3aed)" }}
         >
-          Новое бронирование
+          {f.newBooking}
         </button>
       </motion.div>
     );
@@ -217,7 +224,7 @@ export default function BookingForm() {
       {/* Quest selection */}
       <div>
         <label className="block text-sm font-medium text-[#a1a1aa] mb-3">
-          Выберите квест <span className="text-red-500">*</span>
+          {f.questLabel} <span className="text-red-500">*</span>
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {QUESTS.map((quest) => {
@@ -253,7 +260,7 @@ export default function BookingForm() {
       <div>
         <label className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2">
           <Calendar className="w-4 h-4" style={{ color: accentColor }} />
-          Дата сеанса <span className="text-red-500">*</span>
+          {f.dateLabel} <span className="text-red-500">*</span>
         </label>
         <DatePicker
           value={form.date}
@@ -271,7 +278,7 @@ export default function BookingForm() {
       <div>
         <label className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-3">
           <Clock className="w-4 h-4" style={{ color: accentColor }} />
-          Время сеанса <span className="text-red-500">*</span>
+          {f.timeLabel} <span className="text-red-500">*</span>
           {loadingSlots && (
             <Loader2 className="w-3.5 h-3.5 animate-spin text-[#71717a]" />
           )}
@@ -309,7 +316,7 @@ export default function BookingForm() {
                   cursor: isBooked ? "not-allowed" : !form.date || !form.quest ? "not-allowed" : "pointer",
                   opacity: !form.date || !form.quest ? 0.5 : 1,
                 }}
-                title={isBooked ? "Этот слот уже занят" : undefined}
+                title={isBooked ? f.slotTaken : undefined}
               >
                 {slot}
                 {isBooked && (
@@ -320,9 +327,7 @@ export default function BookingForm() {
           })}
         </div>
         {!form.date || !form.quest ? (
-          <p className="mt-2 text-xs text-[#71717a]">
-            Сначала выберите квест и дату
-          </p>
+          <p className="mt-2 text-xs text-[#71717a]">{f.selectQuestFirst}</p>
         ) : null}
         {fieldErrors.timeSlot && (
           <p className="mt-1.5 text-xs text-red-400">{fieldErrors.timeSlot}</p>
@@ -330,7 +335,7 @@ export default function BookingForm() {
         {bookedSlots.length > 0 && (
           <div className="mt-2 flex items-center gap-1.5 text-xs text-[#71717a]">
             <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />
-            Занятые слоты
+            {f.bookedSlots}
           </div>
         )}
       </div>
@@ -342,12 +347,12 @@ export default function BookingForm() {
           className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2"
         >
           <User className="w-4 h-4" style={{ color: accentColor }} />
-          Ваше имя <span className="text-red-500">*</span>
+          {f.nameLabel} <span className="text-red-500">*</span>
         </label>
         <input
           id="name"
           type="text"
-          placeholder="Например: Айдана"
+          placeholder={f.namePlaceholder}
           value={form.name}
           onChange={(e) => setField("name", e.target.value)}
           className="w-full px-4 py-3 rounded-xl text-white text-sm placeholder-[#3f3f46] transition-all duration-200 focus:outline-none"
@@ -374,7 +379,7 @@ export default function BookingForm() {
           className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2"
         >
           <Phone className="w-4 h-4" style={{ color: accentColor }} />
-          Номер телефона <span className="text-red-500">*</span>
+          {f.phoneLabel} <span className="text-red-500">*</span>
         </label>
         <input
           id="phone"
@@ -406,7 +411,7 @@ export default function BookingForm() {
           className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2"
         >
           <Users className="w-4 h-4" style={{ color: accentColor }} />
-          Количество участников <span className="text-red-500">*</span>
+          {f.participantsLabel} <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center gap-3">
           <button
@@ -447,7 +452,7 @@ export default function BookingForm() {
             +
           </button>
         </div>
-        <p className="mt-1.5 text-xs text-[#71717a]">Минимум 2, максимум 10 участников</p>
+        <p className="mt-1.5 text-xs text-[#71717a]">{f.participantsHint}</p>
         {fieldErrors.participants && (
           <p className="mt-1 text-xs text-red-400">{fieldErrors.participants}</p>
         )}
@@ -460,12 +465,12 @@ export default function BookingForm() {
           className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2"
         >
           <MessageSquare className="w-4 h-4" style={{ color: accentColor }} />
-          Пожелания / комментарий
-          <span className="text-[#71717a] text-xs">(необязательно)</span>
+          {f.commentLabel}
+          <span className="text-[#71717a] text-xs">{f.commentOptional}</span>
         </label>
         <textarea
           id="comment"
-          placeholder="Например: день рождения, дети, особые пожелания..."
+          placeholder={f.commentPlaceholder}
           value={form.comment}
           onChange={(e) => setField("comment", e.target.value)}
           rows={3}
@@ -496,19 +501,17 @@ export default function BookingForm() {
         {submitting ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin" />
-            Обработка...
+            {f.submitting}
           </>
         ) : (
           <>
-            Подтвердить бронирование
+            {f.submit}
             <ChevronRight className="w-5 h-5" />
           </>
         )}
       </button>
 
-      <p className="text-center text-xs text-[#71717a]">
-        После бронирования мы свяжемся с вами для подтверждения
-      </p>
+      <p className="text-center text-xs text-[#71717a]">{f.submitNote}</p>
     </form>
   );
 }
