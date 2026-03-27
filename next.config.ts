@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["xlsx"],
+  images: {
+    domains: [],
+  },
 };
 
 export default nextConfig;
