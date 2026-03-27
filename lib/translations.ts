@@ -66,6 +66,7 @@ export const translations = {
       heading: "НАШИ КВЕСТЫ",
       subtitle: "Два совершенно разных мира — один полон тайн и загадок, другой погрузит вас в атмосферу настоящего ужаса",
       book: "Забронировать",
+      details: "Подробнее",
       items: [
         {
           name: "Gravity Falls",
@@ -285,6 +286,7 @@ export const translations = {
       heading: "БИЗДИН КВЕСТТЕР",
       subtitle: "Эки башка дүйнө — бири сырлар менен толгон, экинчиси чыныгы коркунучтун атмосферасына чөмүлтөт",
       book: "Брондоо",
+      details: "Толугураак",
       items: [
         {
           name: "Gravity Falls",

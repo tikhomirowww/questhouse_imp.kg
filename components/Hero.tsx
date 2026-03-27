@@ -4,14 +4,21 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, Star, Users, Award } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 function Particles() {
-  const [particles, setParticles] = useState<{ id: number; size: number; x: number; y: number; duration: number; delay: number; color: string }[]>([]);
-
-  useEffect(() => {
-    setParticles(
-      Array.from({ length: 24 }, (_, i) => ({
+  const [particles] = useState<
+    {
+      id: number;
+      size: number;
+      x: number;
+      y: number;
+      duration: number;
+      delay: number;
+      color: string;
+    }[]
+  >(() =>
+    Array.from({ length: 24 }, (_, i) => ({
         id: i,
         size: Math.random() * 3 + 1,
         x: Math.random() * 100,
@@ -20,8 +27,7 @@ function Particles() {
         delay: Math.random() * 4,
         color: i % 3 === 0 ? "#dc2626" : i % 3 === 1 ? "#7c3aed" : "#f59e0b",
       }))
-    );
-  }, []);
+  );
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

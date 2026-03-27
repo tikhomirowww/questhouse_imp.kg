@@ -97,7 +97,7 @@ export default function BookingForm() {
     if (bookedSlots.includes(form.timeSlot)) {
       setForm((prev) => ({ ...prev, timeSlot: "" }));
     }
-  }, [bookedSlots]);
+  }, [bookedSlots, form.timeSlot]);
 
   function validateForm(): boolean {
     const errors: Partial<Record<keyof FormData, string>> = {};

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { QUEST_SLUGS } from "@/lib/site-config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://questhouse-imp.kg";
@@ -17,5 +18,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.9,
     },
+    ...QUEST_SLUGS.map((slug) => ({
+      url: `${baseUrl}/quests/${slug}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.95,
+    })),
   ];
 }

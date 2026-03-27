@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Clock, Users, Zap, ChevronRight, Brain, Skull } from "lucide-react";
 import { useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getQuestPath } from "@/lib/site-config";
 
 const QUEST_IDS = ["gravity-falls", "frankenstein"] as const;
 const TYPES = ["logical", "horror"] as const;
@@ -123,14 +124,23 @@ export default function QuestsSection() {
                       ))}
                     </ul>
 
-                    <Link
-                      href={`/booking?quest=${QUEST_IDS[idx]}`}
-                      className="group flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                      style={{ background: `linear-gradient(135deg, ${accentDark}, ${accentColor})`, boxShadow: `0 4px 20px ${accentColor}30` }}
-                    >
-                      {q.book}
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Link
+                        href={getQuestPath(QUEST_IDS[idx])}
+                        className="group flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${accentColor}50` }}
+                      >
+                        {q.details}
+                      </Link>
+                      <Link
+                        href={`/booking?quest=${QUEST_IDS[idx]}`}
+                        className="group flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ background: `linear-gradient(135deg, ${accentDark}, ${accentColor})`, boxShadow: `0 4px 20px ${accentColor}30` }}
+                      >
+                        {q.book}
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </div>
                   </div>
                 </motion.article>
               </TiltCard>

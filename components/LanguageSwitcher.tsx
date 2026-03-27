@@ -8,7 +8,7 @@ export default function LanguageSwitcher() {
 
   const options: { value: Lang; label: string }[] = [
     { value: "ru", label: "RU" },
-    { value: "ky", label: "КЫР" },
+    { value: "ky", label: "KG" },
   ];
 
   return (

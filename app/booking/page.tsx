@@ -5,15 +5,70 @@ import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import BookingForm from "@/components/BookingForm";
 import BookingPageClient from "@/components/BookingPageClient";
+import {
+  getQuestBySlug,
+  getQuestShareImagePath,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/site-config";
 
-export const metadata: Metadata = {
-  title: "Забронировать квест — Онлайн бронирование",
-  description:
-    "Забронируйте квест онлайн. Выберите Gravity Falls или Франкенштейн, удобную дату и время. Квест Хаус ИМП, Бишкек.",
-  alternates: {
-    canonical: "https://questhouse-imp.kg/booking",
-  },
+type BookingPageMetadataProps = {
+  searchParams: Promise<{
+    quest?: string | string[];
+  }>;
 };
+
+export async function generateMetadata({
+  searchParams,
+}: BookingPageMetadataProps): Promise<Metadata> {
+  const params = await searchParams;
+  const questParam = Array.isArray(params.quest) ? params.quest[0] : params.quest;
+  const quest = questParam ? getQuestBySlug(questParam) : undefined;
+
+  if (!quest) {
+    return {
+      title: "Забронировать квест — Онлайн бронирование",
+      description:
+        "Забронируйте квест онлайн. Выберите Gravity Falls или Франкенштейн, удобную дату и время. Квест Хаус ИМП, Бишкек.",
+      alternates: {
+        canonical: `${SITE_URL}/booking`,
+      },
+    };
+  }
+
+  const url = `${SITE_URL}/booking?quest=${quest.slug}`;
+  const description = `Онлайн-бронирование квеста ${quest.nameRu} в Квест Хаус ИМП. ${quest.shortLabel}, ${quest.duration}, возраст ${quest.ageRating}.`;
+
+  return {
+    title: `Забронировать ${quest.nameRu} — онлайн`,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: "website",
+      locale: "ru_KG",
+      url,
+      siteName: SITE_NAME,
+      title: `Забронировать ${quest.nameRu} — Квест Хаус ИМП`,
+      description,
+      images: [
+        {
+          url: getQuestShareImagePath(quest.slug),
+          width: 1200,
+          height: 630,
+          alt: `${quest.nameRu} — ${quest.typeLabel}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `Забронировать ${quest.nameRu}`,
+      description,
+      images: [getQuestShareImagePath(quest.slug)],
+    },
+  };
+}
 
 export default function BookingPage() {
   return (

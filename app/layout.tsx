@@ -1,32 +1,33 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import {
+  QUEST_SLUGS,
+  QUESTS,
+  SITE_ADDRESS,
+  SITE_DESCRIPTION,
+  SITE_INSTAGRAM,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_PHONE,
+  SITE_PHONE_ALT,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://questhouse-imp.kg"),
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
   title: {
-    default: "Квест Хаус ИМП — ТОП Квест в Бишкеке | Хоррор и Логический квест",
+    default: SITE_TITLE,
     template: "%s | Квест Хаус ИМП",
   },
-  description:
-    "Лучший квест-хаус в Бишкеке. Два уникальных квеста: Gravity Falls (логический) и Франкенштейн (хоррор). Профессиональные актёры. Ул. Байтик Баатыра 36/1. Звоните: +996 555 118 119",
-  keywords: [
-    "квест бишкек",
-    "квест хаус",
-    "хоррор квест",
-    "логический квест",
-    "квест с актёрами",
-    "детский квест",
-    "квест хаус имп",
-    "escape room bishkek",
-    "gravity falls quest",
-    "frankenstein quest",
-    "квест байтик баатыра",
-    "квесты бишкек",
-  ],
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
   authors: [{ name: "Квест Хаус ИМП" }],
   creator: "Квест Хаус ИМП",
   publisher: "Квест Хаус ИМП",
+  category: "entertainment",
   formatDetection: {
     telephone: true,
     address: true,
@@ -34,25 +35,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ru_KG",
-    url: "https://questhouse-imp.kg",
-    siteName: "Квест Хаус ИМП",
-    title: "Квест Хаус ИМП — ТОП Квест в Бишкеке",
-    description:
-      "Лучший квест-хаус в Бишкеке. Gravity Falls и Франкенштейн. Профессиональные актёры, уникальные декорации.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Квест Хаус ИМП — ТОП Квест в Бишкеке",
-      },
-    ],
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Квест Хаус ИМП — ТОП Квест в Бишкеке",
-    description: "Лучший квест-хаус в Бишкеке. Gravity Falls и Франкенштейн.",
-    images: ["/og-image.jpg"],
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,
@@ -69,29 +60,64 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  name: "Квест Хаус ИМП",
-  alternateName: "Quest House IMP",
-  description:
-    "Лучший квест-хаус в Бишкеке. Два уникальных квеста: Gravity Falls (логический) и Франкенштейн (хоррор).",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "ул. Байтик Баатыра 36/1",
-    addressLocality: "Бишкек",
-    addressCountry: "KG",
-  },
-  telephone: ["+996555118119", "+996707118119"],
-  url: "https://questhouse-imp.kg",
-  sameAs: ["https://www.instagram.com/questhouse_imp.kg"],
-  openingHours: "Mo-Su 10:00-22:00",
-  priceRange: "$$",
-  image: "/og-image.jpg",
-  hasMap: "https://maps.google.com/?q=Байтик+Баатыра+36/1+Бишкек",
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "5",
-    reviewCount: "2900",
-  },
+  "@graph": [
+    {
+      "@type": "LocalBusiness",
+      "@id": `${SITE_URL}/#business`,
+      name: SITE_NAME,
+      alternateName: "Quest House IMP",
+      description: SITE_DESCRIPTION,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: SITE_ADDRESS,
+        addressLocality: "Бишкек",
+        addressCountry: "KG",
+      },
+      telephone: [SITE_PHONE, SITE_PHONE_ALT],
+      url: SITE_URL,
+      sameAs: [SITE_INSTAGRAM],
+      openingHours: "Mo-Su 10:00-22:00",
+      priceRange: "$$",
+      image: `${SITE_URL}/opengraph-image`,
+      hasMap: "https://maps.google.com/?q=Байтик+Баатыра+36/1+Бишкек",
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "5",
+        reviewCount: "2900",
+      },
+      hasOfferCatalog: {
+        "@type": "OfferCatalog",
+        name: "Квесты Квест Хаус ИМП",
+        itemListElement: QUEST_SLUGS.map((slug) => ({
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: QUESTS[slug].nameRu,
+            description: QUESTS[slug].seoDescription,
+            url: `${SITE_URL}/quests/${slug}`,
+          },
+        })),
+      },
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      inLanguage: "ru-KG",
+    },
+  ],
+};
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/icon.svg`,
+  sameAs: [SITE_INSTAGRAM],
 };
 
 export default function RootLayout({
@@ -115,6 +141,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
         />
       </head>
       <body className="bg-[#0a0a0a] text-white antialiased">

@@ -8,13 +8,12 @@ import ReviewsSection from "@/components/ReviewsSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import { SITE_DESCRIPTION, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Квест Хаус ИМП — ТОП Квест в Бишкеке | Хоррор и Логический квест",
-  description:
-    "Лучший квест-хаус в Бишкеке. Два уникальных квеста: Gravity Falls (логический) и Франкенштейн (хоррор). Профессиональные актёры. Ул. Байтик Баатыра 36/1. Звоните: +996 555 118 119",
+  description: SITE_DESCRIPTION,
   alternates: {
-    canonical: "https://questhouse-imp.kg",
+    canonical: SITE_URL,
   },
 };
 
