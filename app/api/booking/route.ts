@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { appendBooking, isSlotTaken } from "@/lib/google-sheets";
+import { sendTelegramBookingNotification } from "@/lib/telegram";
 import { randomUUID } from "crypto";
 
 export interface BookingRequest {
@@ -169,6 +170,22 @@ export async function POST(request: NextRequest) {
       comment: comment?.trim() ?? "",
       status: "confirmed",
     });
+
+    try {
+      await sendTelegramBookingNotification({
+        bookingId,
+        createdAt: now,
+        questName,
+        date: formattedDate,
+        timeSlot,
+        name: name.trim(),
+        phone: phone.trim(),
+        participants: participantsNum,
+        comment: comment?.trim() ?? "",
+      });
+    } catch (telegramError) {
+      console.error("Telegram notification error:", telegramError);
+    }
 
     return NextResponse.json({
       success: true,

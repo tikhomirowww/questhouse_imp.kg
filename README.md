@@ -36,6 +36,8 @@ GOOGLE_SHEETS_SPREADSHEET_ID=
 GOOGLE_SHEETS_SHEET_NAME=Bookings
 GOOGLE_SHEETS_CLIENT_EMAIL=
 GOOGLE_SHEETS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 ```
 
 Что нужно сделать в Google Cloud:
@@ -46,6 +48,17 @@ GOOGLE_SHEETS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KE
 4. Открыть нужную Google-таблицу и выдать доступ `Editor` на `GOOGLE_SHEETS_CLIENT_EMAIL`.
 
 Лист `Bookings` создастся автоматически, если его ещё нет.
+
+### 2.1. Настроить Telegram-уведомления
+
+Опционально можно добавить уведомления админу в Telegram.
+
+1. Создайте бота через `@BotFather`
+2. Скопируйте токен бота в `TELEGRAM_BOT_TOKEN`
+3. Добавьте бота в нужный чат или напишите ему в личку
+4. Узнайте `chat_id` и запишите его в `TELEGRAM_CHAT_ID`
+
+После каждой новой брони админ будет получать сообщение в Telegram. Если Telegram временно недоступен, сама бронь всё равно сохранится в Google Sheets.
 
 ### 3. Запустить в режиме разработки
 
@@ -108,6 +121,7 @@ questhouse-imp/
 - Защита от двойного бронирования на сервере
 - Валидация всех полей с русскоязычными ошибками
 - Успешное бронирование сохраняется в Google Sheets
+- Опциональные уведомления админу в Telegram
 
 ### Google Sheets
 

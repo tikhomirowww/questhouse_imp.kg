@@ -1,8 +1,11 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Phone, MapPin } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { scrollToSection } from "@/components/HashScrollHandler";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -22,6 +25,7 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 export default function FooterClient() {
   const { t } = useLanguage();
+  const pathname = usePathname();
   const f = t.footer;
   const currentYear = new Date().getFullYear();
 
@@ -32,6 +36,34 @@ export default function FooterClient() {
     { href: "/#contact", label: f.links.contacts },
     { href: "/booking", label: f.links.booking },
   ];
+
+  function handleHomeClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/") {
+      return;
+    }
+
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.history.replaceState(null, "", "/");
+  }
+
+  function handleSectionClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) {
+    const hash = href.includes("#") ? href.slice(href.indexOf("#")) : "";
+    if (!hash) {
+      return;
+    }
+
+    if (pathname !== "/") {
+      return;
+    }
+
+    event.preventDefault();
+    window.history.replaceState(null, "", hash);
+    scrollToSection(hash, true);
+  }
 
   return (
     <footer
@@ -92,7 +124,17 @@ export default function FooterClient() {
             <ul className="space-y-2.5">
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-[#71717a] hover:text-white text-sm transition-colors">
+                  <Link
+                    href={link.href}
+                    onClick={
+                      link.href === "/"
+                        ? handleHomeClick
+                        : link.href.startsWith("/#")
+                        ? (event) => handleSectionClick(event, link.href)
+                        : undefined
+                    }
+                    className="text-[#71717a] hover:text-white text-sm transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>

@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { MouseEvent } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { scrollToSection } from "@/components/HashScrollHandler";
 
 export default function Navbar() {
   const { t } = useLanguage();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -24,6 +28,37 @@ export default function Navbar() {
     { href: "/#contact", label: t.nav.contacts },
   ];
 
+  function handleHomeClick(event: MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/") {
+      return;
+    }
+
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.history.replaceState(null, "", "/");
+    setMenuOpen(false);
+  }
+
+  function handleSectionClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) {
+    const hash = href.includes("#") ? href.slice(href.indexOf("#")) : "";
+    if (!hash) {
+      return;
+    }
+
+    if (pathname !== "/") {
+      setMenuOpen(false);
+      return;
+    }
+
+    event.preventDefault();
+    window.history.replaceState(null, "", hash);
+    scrollToSection(hash, true);
+    setMenuOpen(false);
+  }
+
   return (
     <>
       <header
@@ -37,7 +72,11 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 group shrink-0">
+            <Link
+              href="/"
+              onClick={handleHomeClick}
+              className="flex items-center gap-2 group shrink-0"
+            >
               <div
                 className="w-9 h-9 rounded-lg flex items-center justify-center font-black text-sm transition-all duration-300 group-hover:scale-110"
                 style={{ background: "linear-gradient(135deg, #dc2626, #7c3aed)", fontFamily: "'Cinzel', serif" }}
@@ -58,6 +97,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={(event) => handleSectionClick(event, link.href)}
                   className="text-[#a1a1aa] hover:text-white text-sm font-medium transition-colors tracking-wide"
                 >
                   {link.label}
@@ -119,7 +159,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(event) => handleSectionClick(event, link.href)}
                   className="py-3 px-3 text-[#a1a1aa] hover:text-white hover:bg-white/5 rounded-lg text-sm font-medium transition-all"
                 >
                   {link.label}

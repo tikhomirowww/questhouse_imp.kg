@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import HashScrollHandler from "@/components/HashScrollHandler";
 import {
   QUEST_SLUGS,
   QUESTS,
@@ -148,7 +149,10 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-[#0a0a0a] text-white antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <HashScrollHandler />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -4,30 +4,25 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, Star, Users, Award } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState } from "react";
+import { scrollToSection } from "@/components/HashScrollHandler";
 
 function Particles() {
-  const [particles] = useState<
-    {
-      id: number;
-      size: number;
-      x: number;
-      y: number;
-      duration: number;
-      delay: number;
-      color: string;
-    }[]
-  >(() =>
-    Array.from({ length: 24 }, (_, i) => ({
-        id: i,
-        size: Math.random() * 3 + 1,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        duration: Math.random() * 8 + 4,
-        delay: Math.random() * 4,
-        color: i % 3 === 0 ? "#dc2626" : i % 3 === 1 ? "#7c3aed" : "#f59e0b",
-      }))
-  );
+  const particles = Array.from({ length: 24 }, (_, i) => {
+    const seed = (i * 9301 + 49297) % 233280;
+    const nextSeed = ((i + 1) * 9301 + 49297) % 233280;
+    const thirdSeed = ((i + 2) * 9301 + 49297) % 233280;
+    const fourthSeed = ((i + 3) * 9301 + 49297) % 233280;
+
+    return {
+      id: i,
+      size: (seed / 233280) * 3 + 1,
+      x: (nextSeed / 233280) * 100,
+      y: (thirdSeed / 233280) * 100,
+      duration: (fourthSeed / 233280) * 8 + 4,
+      delay: (((i + 4) * 9301 + 49297) % 233280 / 233280) * 4,
+      color: i % 3 === 0 ? "#dc2626" : i % 3 === 1 ? "#7c3aed" : "#f59e0b",
+    };
+  });
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -131,6 +126,11 @@ export default function Hero() {
 
           <a
             href="#quests"
+            onClick={(event) => {
+              event.preventDefault();
+              window.history.replaceState(null, "", "#quests");
+              scrollToSection("#quests", true);
+            }}
             className="w-full sm:w-auto px-7 py-3.5 sm:py-4 text-base sm:text-lg font-medium text-white rounded-xl border border-white/20 backdrop-blur-sm hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-center"
           >
             {h.ourQuests}
