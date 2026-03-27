@@ -82,7 +82,7 @@ export default function AboutSection() {
               технологии создают полное погружение в другой мир.
             </p>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {[
                 { value: "2900+", label: "Отзывов" },
                 { value: "26K+", label: "Подписчиков" },
@@ -90,24 +90,25 @@ export default function AboutSection() {
               ].map((stat, i) => (
                 <div
                   key={i}
-                  className="flex flex-col p-4 rounded-xl"
+                  className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl"
                   style={{
                     background: "rgba(255,255,255,0.03)",
                     border: "1px solid rgba(255,255,255,0.08)",
                   }}
                 >
                   <span
-                    className="text-2xl font-bold"
+                    className="text-xl sm:text-2xl font-bold"
                     style={{
                       background: "linear-gradient(135deg, #f59e0b, #dc2626)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
                       fontFamily: "'Cinzel', serif",
                     }}
                   >
                     {stat.value}
                   </span>
-                  <span className="text-xs text-[#71717a] mt-1">{stat.label}</span>
+                  <span className="text-[10px] sm:text-xs text-[#71717a] mt-1 leading-tight">{stat.label}</span>
                 </div>
               ))}
             </div>

@@ -3,11 +3,9 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronDown, Star, Users, Award } from "lucide-react";
-import { useEffect, useRef } from "react";
 
-// Particle component
 function Particles() {
-  const particles = Array.from({ length: 30 }, (_, i) => ({
+  const particles = Array.from({ length: 24 }, (_, i) => ({
     id: i,
     size: Math.random() * 3 + 1,
     x: Math.random() * 100,
@@ -22,7 +20,7 @@ function Particles() {
       {particles.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full opacity-30"
+          className="absolute rounded-full"
           style={{
             width: p.size,
             height: p.size,
@@ -30,17 +28,8 @@ function Particles() {
             top: `${p.y}%`,
             backgroundColor: p.color,
           }}
-          animate={{
-            y: [0, -30, 0],
-            opacity: [0.1, 0.5, 0.1],
-            scale: [1, 1.5, 1],
-          }}
-          transition={{
-            duration: p.duration,
-            delay: p.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+          animate={{ y: [0, -30, 0], opacity: [0.1, 0.5, 0.1] }}
+          transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
     </div>
@@ -50,27 +39,25 @@ function Particles() {
 export default function Hero() {
   return (
     <section
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex flex-col overflow-hidden"
       style={{
-        background:
-          "linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 30%, #0a0514 60%, #150a0a 100%)",
+        background: "linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 30%, #0a0514 60%, #150a0a 100%)",
       }}
     >
-      {/* Animated gradient overlay */}
+      {/* Background gradients */}
       <div
-        className="absolute inset-0 opacity-40"
+        className="absolute inset-0 opacity-40 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(220,38,38,0.15) 0%, transparent 50%), radial-gradient(ellipse at 50% 80%, rgba(245,158,11,0.08) 0%, transparent 50%)",
+            "radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(220,38,38,0.15) 0%, transparent 50%)",
         }}
       />
 
-      {/* Particles */}
       <Particles />
 
-      {/* Grid lines */}
+      {/* Grid */}
       <div
-        className="absolute inset-0 opacity-5"
+        className="absolute inset-0 opacity-5 pointer-events-none"
         style={{
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
@@ -81,41 +68,43 @@ export default function Hero() {
       {/* Vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)",
-        }}
+        style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)" }}
       />
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-4 sm:px-6 max-w-5xl mx-auto">
+      {/* Main content — padding-top accounts for fixed navbar (64px) */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-24 pb-20 sm:pt-28 sm:pb-24 max-w-5xl mx-auto w-full">
+
         {/* Badge */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 backdrop-blur-sm"
+          className="inline-flex items-center gap-2 mb-5 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 backdrop-blur-sm"
         >
-          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-          <span className="text-yellow-400 text-sm font-medium tracking-wide">
+          <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
+          <span className="text-yellow-400 text-xs sm:text-sm font-medium tracking-wide">
             ТОП КВЕСТ БИШКЕКА 2024
           </span>
-          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+          <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
         </motion.div>
 
-        {/* Main heading */}
+        {/* Heading */}
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="font-cinzel text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white mb-4 leading-tight tracking-wide"
-          style={{ fontFamily: "'Cinzel', serif" }}
+          className="font-black leading-tight tracking-wide mb-3 sm:mb-4"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: "clamp(2rem, 10vw, 5rem)",
+          }}
         >
           <span
             style={{
               background: "linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}
           >
             КВЕСТ ХАУС
@@ -123,10 +112,10 @@ export default function Hero() {
           <br />
           <span
             style={{
-              background:
-                "linear-gradient(135deg, #dc2626 0%, #7c3aed 50%, #f59e0b 100%)",
+              background: "linear-gradient(135deg, #dc2626 0%, #7c3aed 50%, #f59e0b 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}
           >
             ИМП
@@ -135,10 +124,10 @@ export default function Hero() {
 
         {/* Tagline */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.25 }}
-          className="text-lg sm:text-xl md:text-2xl text-[#a1a1aa] mb-3 font-light tracking-widest uppercase"
+          className="text-sm sm:text-xl md:text-2xl text-[#a1a1aa] mb-1.5 sm:mb-2 font-light tracking-widest uppercase px-2"
         >
           Перевернём Ваше представление о квестах
         </motion.p>
@@ -147,66 +136,65 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-sm sm:text-base text-[#71717a] mb-10 tracking-wider"
+          className="text-xs sm:text-base text-[#71717a] mb-7 sm:mb-10 tracking-wider"
         >
           г. Бишкек, ул. Байтик Баатыра 36/1
         </motion.p>
 
         {/* CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-10 sm:mb-14 w-full max-w-sm sm:max-w-none"
         >
           <Link
             href="/booking"
-            className="group relative px-8 py-4 text-lg font-bold text-white rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 active:scale-95"
+            className="group relative w-full sm:w-auto px-7 py-3.5 sm:py-4 text-base sm:text-lg font-bold text-white rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 active:scale-95 text-center"
             style={{
               background: "linear-gradient(135deg, #dc2626, #7c3aed)",
-              boxShadow: "0 0 30px rgba(220,38,38,0.4)",
+              boxShadow: "0 0 24px rgba(220,38,38,0.4)",
             }}
           >
-            <span className="relative z-10 tracking-wider">
-              ЗАБРОНИРОВАТЬ СЕЙЧАС
-            </span>
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            <span className="relative z-10 tracking-wider">ЗАБРОНИРОВАТЬ СЕЙЧАС</span>
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               style={{ background: "linear-gradient(135deg, #7c3aed, #dc2626)" }}
             />
           </Link>
 
           <a
             href="#quests"
-            className="px-8 py-4 text-lg font-medium text-white rounded-lg border border-white/20 backdrop-blur-sm hover:border-white/40 hover:bg-white/5 transition-all duration-300"
+            className="w-full sm:w-auto px-7 py-3.5 sm:py-4 text-base sm:text-lg font-medium text-white rounded-xl border border-white/20 backdrop-blur-sm hover:border-white/40 hover:bg-white/5 transition-all duration-300 text-center"
           >
             Наши квесты
           </a>
         </motion.div>
 
-        {/* Stats */}
+        {/* Stats — 3 columns always */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.65 }}
-          className="flex flex-wrap justify-center gap-8 sm:gap-12"
+          className="grid grid-cols-3 gap-4 sm:gap-10 w-full max-w-sm sm:max-w-none"
         >
           {[
             { icon: Star, value: "2900+", label: "Отзывов", color: "#f59e0b" },
             { icon: Users, value: "26K+", label: "Подписчиков", color: "#7c3aed" },
-            { icon: Award, value: "ТОП #1", label: "Квест в Бишкеке", color: "#dc2626" },
+            { icon: Award, value: "ТОП #1", label: "в Бишкеке", color: "#dc2626" },
           ].map((stat, i) => (
             <div key={i} className="text-center">
               <stat.icon
-                className="w-6 h-6 mx-auto mb-1"
+                className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1"
                 style={{ color: stat.color }}
               />
               <div
-                className="text-2xl sm:text-3xl font-bold font-cinzel"
+                className="text-lg sm:text-3xl font-bold"
                 style={{ color: stat.color, fontFamily: "'Cinzel', serif" }}
               >
                 {stat.value}
               </div>
-              <div className="text-xs text-[#71717a] tracking-wider uppercase mt-1">
+              <div className="text-[10px] sm:text-xs text-[#71717a] tracking-wider uppercase mt-0.5">
                 {stat.label}
               </div>
             </div>
@@ -214,12 +202,12 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll indicator — hidden on short screens */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#71717a]"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex-col items-center gap-1.5 text-[#71717a] hidden sm:flex"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
+        transition={{ delay: 1.3 }}
       >
         <span className="text-xs tracking-widest uppercase">Прокрутить</span>
         <motion.div

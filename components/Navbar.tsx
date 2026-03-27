@@ -53,10 +53,10 @@ export default function Navbar() {
                 Квест Хаус ИМП
               </span>
               <span
-                className="font-bold text-white text-base tracking-wide sm:hidden"
+                className="font-bold text-white text-sm tracking-wide sm:hidden"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                КХ ИМП
+                Квест Хаус ИМП
               </span>
             </Link>
 

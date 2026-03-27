@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
@@ -15,6 +15,7 @@ import {
   Loader2,
   ChevronRight,
 } from "lucide-react";
+import DatePicker from "@/components/DatePicker";
 
 const QUESTS = [
   { id: "gravity-falls", label: "🌀 Gravity Falls — Логический квест", color: "#7c3aed" },
@@ -250,30 +251,16 @@ export default function BookingForm() {
 
       {/* Date */}
       <div>
-        <label
-          htmlFor="date"
-          className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2"
-        >
+        <label className="flex items-center gap-2 text-sm font-medium text-[#a1a1aa] mb-2">
           <Calendar className="w-4 h-4" style={{ color: accentColor }} />
           Дата сеанса <span className="text-red-500">*</span>
         </label>
-        <input
-          id="date"
-          type="date"
+        <DatePicker
           value={form.date}
-          min={getTodayDate()}
-          onChange={(e) => setField("date", e.target.value)}
-          className="w-full px-4 py-3 rounded-xl text-white text-sm transition-all duration-200 focus:outline-none"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            border: `1px solid ${fieldErrors.date ? "#dc2626" : "rgba(255,255,255,0.1)"}`,
-          }}
-          onFocus={(e) =>
-            (e.target.style.border = `1px solid ${accentColor}80`)
-          }
-          onBlur={(e) =>
-            (e.target.style.border = `1px solid ${fieldErrors.date ? "#dc2626" : "rgba(255,255,255,0.1)"}`)
-          }
+          onChange={(val) => setField("date", val)}
+          minDate={getTodayDate()}
+          accentColor={accentColor}
+          error={!!fieldErrors.date}
         />
         {fieldErrors.date && (
           <p className="mt-1.5 text-xs text-red-400">{fieldErrors.date}</p>
@@ -435,11 +422,13 @@ export default function BookingForm() {
           </button>
           <input
             id="participants"
-            type="number"
-            min={2}
-            max={10}
+            type="text"
+            inputMode="numeric"
             value={form.participants}
-            onChange={(e) => setField("participants", Number(e.target.value))}
+            onChange={(e) => {
+              const n = parseInt(e.target.value);
+              if (!isNaN(n)) setField("participants", Math.min(10, Math.max(2, n)));
+            }}
             className="flex-1 px-4 py-3 rounded-xl text-white text-sm text-center font-bold focus:outline-none"
             style={{
               background: "rgba(255,255,255,0.05)",
