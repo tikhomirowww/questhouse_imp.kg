@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: "/api/",
     },
-    sitemap: "https://questhouse-imp.kg/sitemap.xml",
+    sitemap: "https://questhouse-imp-kg.vercel.app/sitemap.xml",
   };
 }

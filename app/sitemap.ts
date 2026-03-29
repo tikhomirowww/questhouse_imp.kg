@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { QUEST_SLUGS } from "@/lib/site-config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://questhouse-imp.kg";
+  const baseUrl = "https://questhouse-imp-kg.vercel.app";
   const now = new Date();
 
   return [

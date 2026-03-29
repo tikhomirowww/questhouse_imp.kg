@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = "https://questhouse-imp.kg";
+export const SITE_URL = "https://questhouse-imp-kg.vercel.app";
 export const SITE_NAME = "Квест Хаус ИМП";
 export const SITE_TITLE =
   "Квест Хаус ИМП — ТОП квесты в Бишкеке | Хоррор и логические квесты";
