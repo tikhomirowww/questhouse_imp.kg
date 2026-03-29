@@ -10,7 +10,7 @@ export interface Booking {
   phone: string;
   participants: number;
   comment: string;
-  status: string;
+  status: boolean;
 }
 
 const DEFAULT_SHEET_NAME = "Bookings";
@@ -19,7 +19,6 @@ const SLOT_CACHE_TTL_MS = 15_000;
 const SLOT_INDEX_CACHE_TTL_MS = 60_000;
 
 const HEADERS: (keyof Booking)[] = [
-  "id",
   "createdAt",
   "questName",
   "date",
@@ -33,48 +32,40 @@ const HEADERS: (keyof Booking)[] = [
 
 const HEADER_LABELS: Record<keyof Booking, string> = {
   id: "ID",
-  createdAt: "Created At",
-  questName: "Quest Name",
-  date: "Booking Date",
-  timeSlot: "Time Slot",
-  name: "Customer Name",
-  phone: "Phone",
-  participants: "Participants",
-  comment: "Comment",
-  status: "Status",
+  createdAt: "Дата создания",
+  questName: "Квест",
+  date: "Дата сеанса",
+  timeSlot: "Время",
+  name: "Имя клиента",
+  phone: "Телефон",
+  participants: "Участников",
+  comment: "Комментарий",
+  status: "Статус",
 };
 
 type SlotRow = {
-  bookingId: string;
   questName: string;
   date: string;
   timeSlot: string;
-  status: string;
-  updatedAt: string;
 };
 
 const SLOT_HEADERS: (keyof SlotRow)[] = [
-  "bookingId",
   "questName",
   "date",
   "timeSlot",
-  "status",
-  "updatedAt",
 ];
 
 const SLOT_HEADER_LABELS: Record<keyof SlotRow, string> = {
-  bookingId: "Booking ID",
-  questName: "Quest Name",
-  date: "Booking Date",
-  timeSlot: "Time Slot",
-  status: "Status",
-  updatedAt: "Updated At",
+  questName: "Квест",
+  date: "Дата сеанса",
+  timeSlot: "Время",
 };
 
 const slotCache = new Map<string, { expiresAt: number; slots: string[] }>();
 let slotIndexCache: { expiresAt: number; rows: SlotRow[] } | null = null;
 let sheetSetupPromise: Promise<void> | null = null;
 let sheetsClientPromise: Promise<sheets_v4.Sheets> | null = null;
+let bookingSheetId: number | null = null;
 
 function getSpreadsheetId() {
   const spreadsheetId = process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
@@ -175,10 +166,11 @@ async function ensureSheetsSetup() {
         fields: "sheets.properties",
       });
 
+      const sheetsData = spreadsheet.data.sheets ?? [];
       const existingSheetNames = new Set(
-        spreadsheet.data.sheets
-          ?.map((sheet) => sheet.properties?.title)
-          .filter((title): title is string => Boolean(title)) ?? []
+        sheetsData
+          .map((sheet) => sheet.properties?.title)
+          .filter((title): title is string => Boolean(title))
       );
 
       const missingSheets = [bookingSheetName, slotsSheetName].filter(
@@ -190,11 +182,7 @@ async function ensureSheetsSetup() {
           spreadsheetId,
           requestBody: {
             requests: missingSheets.map((sheetName) => ({
-              addSheet: {
-                properties: {
-                  title: sheetName,
-                },
-              },
+              addSheet: { properties: { title: sheetName } },
             })),
           },
         });
@@ -210,6 +198,47 @@ async function ensureSheetsSetup() {
         slotsSheetName,
         SLOT_HEADERS.map((header) => SLOT_HEADER_LABELS[header])
       );
+
+      // Cache the booking sheet numeric ID and apply bold formatting to the header row.
+      try {
+        const updatedSpreadsheet = await sheets.spreadsheets.get({
+          spreadsheetId,
+          fields: "sheets.properties",
+        });
+        const bookingSheetMeta = updatedSpreadsheet.data.sheets?.find(
+          (s) => s.properties?.title === bookingSheetName
+        );
+        if (bookingSheetMeta?.properties?.sheetId != null) {
+          bookingSheetId = bookingSheetMeta.properties.sheetId;
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId,
+            requestBody: {
+              requests: [
+                {
+                  repeatCell: {
+                    range: {
+                      sheetId: bookingSheetId,
+                      startRowIndex: 0,
+                      endRowIndex: 1,
+                      startColumnIndex: 0,
+                      endColumnIndex: HEADERS.length,
+                    },
+                    cell: {
+                      userEnteredFormat: {
+                        textFormat: { bold: true },
+                        backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                      },
+                    },
+                    fields: "userEnteredFormat.textFormat.bold,userEnteredFormat.backgroundColor",
+                  },
+                },
+              ],
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("Could not apply header formatting:", e);
+      }
     })().catch((error) => {
       sheetSetupPromise = null;
       throw error;
@@ -234,27 +263,24 @@ function columnLetterFromIndex(index: number) {
 
 function normalizeBooking(row: string[]): Booking {
   return {
-    id: row[0] ?? "",
-    createdAt: row[1] ?? "",
-    questName: row[2] ?? "",
-    date: row[3] ?? "",
-    timeSlot: row[4] ?? "",
-    name: row[5] ?? "",
-    phone: row[6] ?? "",
-    participants: Number(row[7] ?? 0),
-    comment: row[8] ?? "",
-    status: row[9] ?? "",
+    id: "",
+    createdAt: row[0] ?? "",
+    questName: row[1] ?? "",
+    date: row[2] ?? "",
+    timeSlot: row[3] ?? "",
+    name: row[4] ?? "",
+    phone: row[5] ?? "",
+    participants: Number(row[6] ?? 0),
+    comment: row[7] ?? "",
+    status: row[8] === "TRUE",
   };
 }
 
 function normalizeSlotRow(row: string[]): SlotRow {
   return {
-    bookingId: row[0] ?? "",
-    questName: row[1] ?? "",
-    date: row[2] ?? "",
-    timeSlot: row[3] ?? "",
-    status: row[4] ?? "",
-    updatedAt: row[5] ?? "",
+    questName: row[0] ?? "",
+    date: row[1] ?? "",
+    timeSlot: row[2] ?? "",
   };
 }
 
@@ -335,28 +361,62 @@ export async function appendBooking(booking: Booking): Promise<void> {
 
   await ensureSheetsSetup();
 
-  await sheets.spreadsheets.values.append({
+  // Find next empty row by checking column A only (avoids checkbox cells in Status column
+  // which confuse values.append INSERT_ROWS into appending after row 10000)
+  const colAResponse = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${sheetName}!A:${columnLetterFromIndex(HEADERS.length)}`,
-    valueInputOption: "RAW",
-    insertDataOption: "INSERT_ROWS",
-    requestBody: {
-      values: [
-        HEADERS.map((header) => {
-          const value = booking[header];
-          return typeof value === "number" ? value : String(value);
-        }),
-      ],
-    },
+    range: `${sheetName}!A:A`,
+  });
+  const nextRow = (colAResponse.data.values?.length ?? 0) + 1;
+
+  const rowValues = HEADERS.map((header) => {
+    const value = booking[header];
+    // Booleans: write as "TRUE"/"FALSE" — USER_ENTERED converts to boolean (checkbox)
+    if (typeof value === "boolean") return value ? "TRUE" : "FALSE";
+    // Numbers: pass as-is
+    if (typeof value === "number") return value;
+    // Strings: prefix with ' to force plain text, prevents phone (+996-...) being evaluated as formula
+    return `'${String(value)}`;
   });
 
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!A${nextRow}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [rowValues] },
+  });
+
+  // Add a checkbox to the Status cell of this specific row only
+  if (bookingSheetId != null) {
+    const statusColIndex = HEADERS.indexOf("status");
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: {
+        requests: [
+          {
+            setDataValidation: {
+              range: {
+                sheetId: bookingSheetId,
+                startRowIndex: nextRow - 1,
+                endRowIndex: nextRow,
+                startColumnIndex: statusColIndex,
+                endColumnIndex: statusColIndex + 1,
+              },
+              rule: {
+                condition: { type: "BOOLEAN" },
+                showCustomUi: true,
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
   const nextSlotRow: SlotRow = {
-    bookingId: booking.id,
     questName: booking.questName,
     date: booking.date,
     timeSlot: booking.timeSlot,
-    status: booking.status,
-    updatedAt: booking.createdAt,
   };
 
   await sheets.spreadsheets.values.append({
@@ -365,16 +425,7 @@ export async function appendBooking(booking: Booking): Promise<void> {
     valueInputOption: "RAW",
     insertDataOption: "INSERT_ROWS",
     requestBody: {
-      values: [
-        [
-          nextSlotRow.bookingId,
-          nextSlotRow.questName,
-          nextSlotRow.date,
-          nextSlotRow.timeSlot,
-          nextSlotRow.status,
-          nextSlotRow.updatedAt,
-        ],
-      ],
+      values: [[nextSlotRow.questName, nextSlotRow.date, nextSlotRow.timeSlot]],
     },
   });
 
@@ -411,9 +462,7 @@ async function readSlotRows(): Promise<SlotRow[]> {
 }
 
 async function rebuildSlotsIndexFromBookings(bookings: Booking[]) {
-  const activeBookings = bookings.filter((booking) => booking.status !== "cancelled");
-
-  if (activeBookings.length === 0) {
+  if (bookings.length === 0) {
     return;
   }
 
@@ -426,25 +475,19 @@ async function rebuildSlotsIndexFromBookings(bookings: Booking[]) {
     range: `${slotsSheetName}!A2`,
     valueInputOption: "RAW",
     requestBody: {
-      values: activeBookings.map((booking) => [
-        booking.id,
+      values: bookings.map((booking) => [
         booking.questName,
         booking.date,
         booking.timeSlot,
-        booking.status,
-        booking.createdAt,
       ]),
     },
   });
 
   writeSlotIndexCache(
-    activeBookings.map((booking) => ({
-      bookingId: booking.id,
+    bookings.map((booking) => ({
       questName: booking.questName,
       date: booking.date,
       timeSlot: booking.timeSlot,
-      status: booking.status,
-      updatedAt: booking.createdAt,
     }))
   );
 }
@@ -472,25 +515,15 @@ export async function getBookedSlots(
   if (slotRows.length === 0) {
     const bookings = await readAllBookings();
     await rebuildSlotsIndexFromBookings(bookings);
-    slotRows = bookings
-      .filter((booking) => booking.status !== "cancelled")
-      .map((booking) => ({
-        bookingId: booking.id,
-        questName: booking.questName,
-        date: booking.date,
-        timeSlot: booking.timeSlot,
-        status: booking.status,
-        updatedAt: booking.createdAt,
-      }));
+    slotRows = bookings.map((booking) => ({
+      questName: booking.questName,
+      date: booking.date,
+      timeSlot: booking.timeSlot,
+    }));
   }
 
   const slots = slotRows
-    .filter(
-      (slot) =>
-        slot.questName === questName &&
-        slot.date === date &&
-        slot.status !== "cancelled"
-    )
+    .filter((slot) => slot.questName === questName && slot.date === date)
     .map((slot) => slot.timeSlot);
 
   writeSlotCache(questName, date, slots);

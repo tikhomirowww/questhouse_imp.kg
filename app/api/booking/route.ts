@@ -121,9 +121,9 @@ export async function POST(request: NextRequest) {
 
     // Validate participants
     const participantsNum = Number(participants);
-    if (isNaN(participantsNum) || participantsNum < 2 || participantsNum > 10) {
+    if (isNaN(participantsNum) || participantsNum < 4 || participantsNum > 10) {
       return NextResponse.json(
-        { success: false, error: "Количество участников должно быть от 2 до 10" },
+        { success: false, error: "Количество участников должно быть от 4 до 10" },
         { status: 400 }
       );
     }
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
       phone: phone.trim(),
       participants: participantsNum,
       comment: comment?.trim() ?? "",
-      status: "confirmed",
+      status: false,
     });
 
     try {

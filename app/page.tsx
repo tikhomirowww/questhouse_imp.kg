@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import AboutSection from "@/components/AboutSection";
 import QuestsSection from "@/components/QuestCard";
+import PricingSection from "@/components/PricingSection";
 import HowItWorks from "@/components/HowItWorks";
 import ReviewsSection from "@/components/ReviewsSection";
 import ContactSection from "@/components/ContactSection";
@@ -24,6 +25,7 @@ export default function HomePage() {
       <Hero />
       <AboutSection />
       <QuestsSection />
+      <PricingSection />
       <HowItWorks />
       <ReviewsSection />
       <ContactSection />

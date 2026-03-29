@@ -126,6 +126,18 @@ export const translations = {
       ],
     },
 
+    // Pricing
+    pricing: {
+      tag: "Прозрачные цены",
+      heading: "СТОИМОСТЬ",
+      base: "2 000 сом",
+      baseLabel: "до 4 человек",
+      extra: "+ 300 сом",
+      extraLabel: "за каждого следующего",
+      note: "Максимум 10 человек",
+      cta: "Забронировать",
+    },
+
     // Reviews
     reviews: {
       tag: "Что говорят наши гости",
@@ -345,6 +357,17 @@ export const translations = {
           desc: "Байтик Баатыр көч. 36/1 дарегине келиңиз жана унутулгус приключениеге чөмүлүңүз!",
         },
       ],
+    },
+
+    pricing: {
+      tag: "Ачык баалар",
+      heading: "БААСЫ",
+      base: "2 000 сом",
+      baseLabel: "4 адамга чейин",
+      extra: "+ 300 сом",
+      extraLabel: "ар бир кийинки адам үчүн",
+      note: "Максимум 10 адам",
+      cta: "Брондоо",
     },
 
     reviews: {

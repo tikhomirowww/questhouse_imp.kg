@@ -93,7 +93,7 @@ export default function BookingForm() {
     timeSlot: "",
     name: "",
     phone: "",
-    participants: 2,
+    participants: 4,
     comment: "",
   });
 
@@ -379,9 +379,9 @@ export default function BookingForm() {
                 onClick={() => !isDisabled && setField("timeSlot", slot)}
                 className="py-2.5 px-2 rounded-xl text-sm font-medium transition-all duration-200 relative"
                 style={{
-                  background: isBooked
+                  background: isTooSoon
                     ? "rgba(255,255,255,0.03)"
-                    : isTooSoon
+                    : isBooked
                     ? "rgba(255,255,255,0.03)"
                     : isUnavailable
                     ? "rgba(255,255,255,0.025)"
@@ -389,20 +389,20 @@ export default function BookingForm() {
                     ? `${accentColor}20`
                     : "rgba(255,255,255,0.05)",
                   border: `1px solid ${
-                    isBooked
-                      ? "rgba(255,255,255,0.05)"
-                      : isTooSoon
+                    isTooSoon
                       ? "rgba(245,158,11,0.18)"
+                      : isBooked
+                      ? "rgba(255,255,255,0.05)"
                       : isUnavailable
                       ? "rgba(255,255,255,0.06)"
                       : isSelected
                       ? `${accentColor}80`
                       : "rgba(255,255,255,0.1)"
                   }`,
-                  color: isBooked
-                    ? "#3f3f46"
-                    : isTooSoon
+                  color: isTooSoon
                     ? "#6b5d37"
+                    : isBooked
+                    ? "#3f3f46"
                     : isUnavailable
                     ? "#5b5b66"
                     : isSelected
@@ -411,14 +411,14 @@ export default function BookingForm() {
                   cursor: isDisabled ? "not-allowed" : "pointer",
                   opacity: isUnavailable ? 0.72 : 1,
                 }}
-                title={isBooked ? f.slotTaken : isTooSoon ? f.slotTooSoon : undefined}
+                title={isTooSoon ? f.slotTooSoon : isBooked ? f.slotTaken : undefined}
               >
                 {slot}
-                {isBooked && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-black" />
-                )}
-                {isTooSoon && !isBooked && (
+                {isTooSoon && (
                   <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border border-black" />
+                )}
+                {isBooked && !isTooSoon && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-black" />
                 )}
               </button>
             );
@@ -524,7 +524,7 @@ export default function BookingForm() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => setField("participants", Math.max(2, form.participants - 1))}
+            onClick={() => setField("participants", Math.max(4, form.participants - 1))}
             className="w-10 h-10 rounded-lg text-white font-bold text-lg flex items-center justify-center transition-all hover:scale-110"
             style={{
               background: "rgba(255,255,255,0.08)",
@@ -540,7 +540,7 @@ export default function BookingForm() {
             value={form.participants}
             onChange={(e) => {
               const n = parseInt(e.target.value);
-              if (!isNaN(n)) setField("participants", Math.min(10, Math.max(2, n)));
+              if (!isNaN(n)) setField("participants", Math.min(10, Math.max(4, n)));
             }}
             className="flex-1 px-4 py-3 rounded-xl text-white text-sm text-center font-bold focus:outline-none"
             style={{
@@ -561,6 +561,16 @@ export default function BookingForm() {
           </button>
         </div>
         <p className="mt-1.5 text-xs text-[#71717a]">{f.participantsHint}</p>
+        <div className="mt-3 flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: `${accentColor}10`, border: `1px solid ${accentColor}25` }}>
+          <span className="text-xs text-[#a1a1aa]">
+            {form.participants <= 4
+              ? "До 4 человек"
+              : `4 + ${form.participants - 4} × 300 сом`}
+          </span>
+          <span className="text-sm font-bold" style={{ color: accentColor }}>
+            {(2000 + Math.max(0, form.participants - 4) * 300).toLocaleString("ru-RU")} сом
+          </span>
+        </div>
         {fieldErrors.participants && (
           <p className="mt-1 text-xs text-red-400">{fieldErrors.participants}</p>
         )}
